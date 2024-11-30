@@ -1223,13 +1223,14 @@ export class MscAiTranslator extends HTMLElement {
       ? await window.ai.translator.create(languagePair)
       : await window.translation.createTranslator(languagePair);
     result = await translator.translate(content);
-    translator?.destroy?.();
+    translator.destroy?.();
 
     return result;
   }
 
   async translate({ content = '', useDialog = false, targetLanguage } = {}) {
     const { dialog, dialogMain, dialogResultContent, trigger, triggerSelect } = this.#nodes;
+    let result = '';
 
     if (!content) {
       content = this.#getPrompts();
@@ -1239,12 +1240,11 @@ export class MscAiTranslator extends HTMLElement {
       return result;
     }
 
-    let result = '';
     const detector = underAiNs
       ? await window.ai.languageDetector.create()
       : await window.translation.createDetector();
     const [ bestResult ] = await detector.detect(content);
-    detector?.destroy?.();
+    detector.destroy?.();
 
     const sourceLanguage = bestResult.detectedLanguage;
     targetLanguage = targetLanguage || triggerSelect.value;
