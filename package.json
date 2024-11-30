@@ -1,0 +1,28 @@
+{
+  "name": "msc-ai-translator",
+  "version": "1.0.0",
+  "description": "<msc-ai-translator /> is a web component based on Chrome Built-in AI > Language Detector API and Translator API. Web developers could use <msc-ai-translator /> wrap article which want to adopt translate language feature.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meistudioli/msc-ai-translator.git"
+  },
+  "keywords": [
+    "web",
+    "front-end",
+    "web component",
+    "built-in AI",
+    "AI on Chrome",
+    "Language Detector API",
+    "Translator API"
+  ],
+  "author": "Paul Li",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/meistudioli/msc-ai-translator/issues"
+  },
+  "homepage": "https://github.com/meistudioli/msc-ai-translator#readme"
+}
