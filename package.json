@@ -1,6 +1,6 @@
 {
   "name": "msc-ai-translator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "<msc-ai-translator /> is a web component based on Chrome Built-in AI > Language Detector API and Translator API. Web developers could use <msc-ai-translator /> wrap article which want to adopt translate language feature.",
   "main": "index.html",
   "scripts": {

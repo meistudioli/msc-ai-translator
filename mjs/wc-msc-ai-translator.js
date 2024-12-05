@@ -553,7 +553,8 @@ ${_wccss}
 
   .prompt-result__content {
     color: var(--translator-content-color);
-    line-height: 1.3;
+    line-height: 1.5;
+    letter-spacing: .3px;
     inline-size: 100%;
     box-sizing: border-box;
     padding-inline: 1em;
