@@ -123,6 +123,9 @@ msc-ai-translator {
   --msc-ai-translator-content-highlight-text-color: rgba(68 71 70);
   --msc-ai-translator-content-highlight-background-color: rgba(233 238 246);
   --msc-ai-translator-content-group-background-color: rgba(241 244 248);
+  --msc-ai-translator-button-voice-background-color: rgba(202 230 252);
+  --msc-ai-translator-button-voice-icon-color: rgba(8 28 53);
+  --msc-ai-translator-button-voice-box-shadow: 0px 4px 10px rgba(0 0 0/.15);
 }
 </style>
 ```

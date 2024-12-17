@@ -14,6 +14,8 @@ import 'https://unpkg.com/msc-circle-progress/mjs/wc-msc-circle-progress.js';
  - MDN ::part(): https://developer.mozilla.org/en-US/docs/Web/CSS/::part
  - translation-language-detection-api-playground: https://github.com/tomayac/translation-language-detection-api-playground/tree/main
  - chrome://on-device-translation-internals/
+ - https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis
+ - https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance
  - https://gnn.gamer.com.tw/detail.php?sn=229164
  */
 
@@ -530,6 +532,10 @@ ${_wccss}
   --translator-content-highlight-background-color: var(--msc-ai-translator-content-highlight-background-color, rgba(233 238 246));
   --translator-content-pre-background-color: var(--msc-ai-translator-content-group-background-color, rgba(241 244 248));
 
+  --btn-voice-background-color: var(--msc-ai-translator-button-voice-background-color, rgba(202 230 252));
+  --btn-voice-icon-color: var(--msc-ai-translator-button-voice-icon-color, rgba(8 28 53));
+  --btn-voice-box-shadow: var(--msc-ai-translator-button-voice-box-shadow, 0px 4px 10px rgba(0 0 0/.15));
+
   position:relative;
 
   .pretty-paragraph {
@@ -539,9 +545,26 @@ ${_wccss}
     white-space: pre-wrap;
   }
 
+  .prompt-result__titles {
+    display: flex;
+    align-items: center;
+    gap: .5em;
+
+    .button--voice {
+      --button-size: 32;
+      --before-icon: path('M3 9v6h4l5 5V4L7 9H3zm7-.17v6.34L7.83 13H5v-2h2.83L10 8.83zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z');
+      --after-icon: path('M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+      
+      --button-background-color: var(--btn-voice-background-color);
+      --button-icon-color: var(--btn-voice-icon-color);
+      --button-box-shadow: var(--btn-voice-box-shadow);
+    }
+  }
+
   .prompt-result__title {
     --sparkle-size: 28px;
 
+    flex-grow: 1;
     min-block-size: var(--sparkle-size);
     color: var(--introduction-color);
     line-height: 1.3;
@@ -645,7 +668,17 @@ ${_wccss}
 
     <div class="fuji-alerts__form__main">
       <div class="prompt-result">
-        <p class="prompt-result__title pretty-paragraph">${defaults.l10n.introduction}</p>
+        <div class="prompt-result__titles">
+          <p class="prompt-result__title pretty-paragraph">${defaults.l10n.introduction}</p>
+          <button
+            type="button"
+            class="button--voice button-two-face"
+            data-action="voice"
+          >
+            voice
+          </button>
+        </div>
+
         <div class="prompt-result__content pretty-paragraph"></div>
       </div>
     </div>
@@ -806,9 +839,29 @@ if (CSS?.registerProperty) {
       inherits: true,
       initialValue: 'rgba(241 244 248)'
     });
+
+    CSS.registerProperty({
+      name: '--msc-ai-translator-button-voice-background-color',
+      syntax: '<color>',
+      inherits: true,
+      initialValue: 'rgba(202 230 252)'
+    });
+
+    CSS.registerProperty({
+      name: '--msc-ai-translator-button-voice-icon-color',
+      syntax: '<color>',
+      inherits: true,
+      initialValue: 'rgba(8 28 53)'
+    });
   } catch(err) {
     console.warn(`msc-ai-translator: ${err.message}`);
   }
+}
+
+// Web Speech
+const synth = window.speechSynthesis;
+if (synth) {
+  window.addEventListener('beforeunload', () => synth.cancel());
 }
 
 // progressSet
@@ -900,6 +953,7 @@ export class MscAiTranslator extends HTMLElement {
       triggerSelect: this.shadowRoot.querySelector('.btn-prompt__select-wrap__select'),
       dialog: this.shadowRoot.querySelector('dialog'),
       btnClose: this.shadowRoot.querySelector('.fuji-alerts__close'),
+      btnVoice: this.shadowRoot.querySelector('.button--voice'),
       dialogSubject: this.shadowRoot.querySelector('.fuji-alerts__form__head__p'),
       dialogResultIntroduction: this.shadowRoot.querySelector('.prompt-result__title'),
       dialogResultContent: this.shadowRoot.querySelector('.prompt-result__content'),
@@ -917,6 +971,7 @@ export class MscAiTranslator extends HTMLElement {
     this._updateTriggerContent = this._updateTriggerContent.bind(this);
     this._onDialogCancel = this._onDialogCancel.bind(this);
     this._onDialogButtonsClick = this._onDialogButtonsClick.bind(this);
+    this._onUtteranceActions = this._onUtteranceActions.bind(this);
   }
 
   async connectedCallback() {
@@ -944,6 +999,18 @@ export class MscAiTranslator extends HTMLElement {
     trigger.addEventListener('change', this._updateTriggerContent, { signal });
     dialog.addEventListener('cancel', this._onDialogCancel, { signal });
     dialog.addEventListener('click', this._onDialogButtonsClick, { signal });
+
+    if (synth && window.SpeechSynthesisUtterance) {
+      const utterance = new window.SpeechSynthesisUtterance();
+      this.#data.utterance = utterance;
+      ['start', 'end', 'resume', 'pause', 'error'].forEach(
+        (event) => {
+          utterance.addEventListener(event, this._onUtteranceActions, { signal });
+        }
+      );
+    } else {
+      this.#nodes.btnVoice.remove();
+    }
   }
 
   disconnectedCallback() {
@@ -1172,6 +1239,11 @@ export class MscAiTranslator extends HTMLElement {
     );
 
     dialog.toggleAttribute('close', true);
+
+    // force cancel synth
+    if (synth) {
+      synth.cancel();
+    }
   }
 
   _onDialogCancel(evt) {
@@ -1193,6 +1265,20 @@ export class MscAiTranslator extends HTMLElement {
       case 'close':
         this.#prepareDialogClose();
         break;
+
+      case 'voice': {
+        if (!synth) {
+          return;
+        }
+
+        if (synth.speaking) {
+          synth[synth.paused ? 'resume' : 'pause']();
+        } else {
+          synth.cancel();
+          synth.speak(this.#data.utterance);
+        }
+        break;
+      }
     }
   }
 
@@ -1211,6 +1297,26 @@ export class MscAiTranslator extends HTMLElement {
 
   ready() {
     return (available === 'no' || downloading || this.#nodes.trigger.inert) ? false : true;
+  }
+
+  _onUtteranceActions(evt) {
+    const { btnVoice } = this.#nodes;
+    const { type } = evt;
+
+    switch(type) {
+      case 'resume':
+      case 'start': {
+        btnVoice.toggleAttribute('data-reverse', true);
+        break;
+      }
+
+      case 'error':
+      case 'pause':
+      case 'end': {
+        btnVoice.toggleAttribute('data-reverse', false);
+        break;
+      }
+    }
   }
 
   async #goTranslating({ sourceLanguage, targetLanguage, content }) {
@@ -1285,6 +1391,15 @@ export class MscAiTranslator extends HTMLElement {
       dialogResultContent.textContent = result;
       dialogMain.scrollTop = 0;
       dialog.showModal();
+
+      if (synth) {
+        synth.cancel();
+        this.#nodes.btnVoice.toggleAttribute('data-reverse', false);
+        this.#data.utterance.text = result;
+        this.#data.utterance.lang = targetLanguage;
+
+        synth.speak(this.#data.utterance);
+      }
     }
 
     return result;

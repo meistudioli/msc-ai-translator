@@ -29,6 +29,76 @@ a{cursor:pointer;text-decoration:none;}
 .flex-center{display:flex;justify-content:center;align-items:center;}
 .force-radius{overflow:hidden;transform:translate3d(0, 0, 0);border-radius:var(--r, 8px);}
 .pretty-paragraph{word-break:break-word;hyphens:auto;text-wrap:pretty;white-space:pre-wrap;}
+.button-two-face {
+  --button-size: 40;
+  --button-size-with-unit: calc(var(--button-size) * 1px);
+  
+  --button-background-color: rgba(202 230 252);
+  --button-icon-color: rgba(8 28 53);
+  --button-box-shadow: none;
+  --button-active-scale: .8;
+
+  --button-icon-scale-basis: calc((var(--button-size) * .75) / 24);
+  --before-icon: none;
+  --before-scale: var(--button-icon-scale-basis);
+  --after-icon: none;
+  --after-scale: 0;
+
+  flex-shrink: 0;
+  font-size: 0;
+  appearance: none;
+  box-shadow: unset;
+  border: unset;
+  background: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+  margin: 0;
+  padding: 0;
+  outline: 0 none;
+
+  position: relative;
+  inline-size: var(--button-size-with-unit);
+  aspect-ratio: 1/1;
+  border-radius: var(--button-size-with-unit);
+  background-color: var(--button-background-color);
+  box-shadow: var(--button-box-shadow);
+
+  &:active {
+    scale: var(--button-active-scale);
+  }
+
+  &::before,
+  &::after {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    content: '';
+    inline-size: 24px;
+    aspect-ratio: 1/1;
+    background-color: var(--button-icon-color);
+    margin-inline-start: -12px;
+    margin-block-start: -12px;
+    transition: scale 250ms ease;
+    will-change: scale;
+    pointer-events: none;
+  }
+
+  &::before {
+    scale: var(--before-scale);
+    clip-path: var(--before-icon);
+  }
+
+  &::after {
+    scale: var(--after-scale);
+    clip-path: var(--after-icon);
+  }
+
+  &[data-reverse] {
+    --before-scale: 0;
+    --after-scale: var(--button-icon-scale-basis);
+  }
+}
 
 :host{all:initial;font-family:system-ui,sans-serif;text-size-adjust:100%;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-size:16px;-webkit-tap-highlight-color:transparent;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 :host {
